@@ -1,1 +1,1 @@
-# CS 229 Project by Cherie Xu and Harrison Bronsfeld
+# CS 229 Project by Cherie Xu and Harrison Bronfeld
