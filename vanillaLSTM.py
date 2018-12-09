@@ -112,46 +112,33 @@ tokenizer = Tokenizer(num_words= vocabulary_size)
 tokenizer.fit_on_texts(train_df['text'])
 sequences = tokenizer.texts_to_sequences(train_df['text'])
 data = pad_sequences(sequences, maxlen=50)
-embeddings_index = dict()
-f = open('/home/cheriexu/glove.twitter.27B.200d.txt')
-for line in f:
-    values = line.split()
-    word = values[0]
-    coefs = np.asarray(values[1:], dtype='float32')
-    embeddings_index[word] = coefs
-f.close()
-embedding_matrix = np.zeros((vocabulary_size, 200))
-for word, index in tokenizer.word_index.items():
-    if index > vocabulary_size - 1:
-        break
-    else:
-        embedding_vector = embeddings_index.get(word)
-        if embedding_vector is not None:
-            embedding_matrix[index] = embedding_vector
-model_glove = Sequential()
-model_glove.add(Embedding(vocabulary_size, 200, input_length=50, weights=[embedding_matrix], trainable=False))
-#model_glove.add(Dropout(0.2))
-#model_glove.add(Conv1D(64, 5, activation='relu'))
-#model_glove.add(MaxPooling1D(pool_size=4))
-model_glove.add(LSTM(200,dropout=0.2, recurrent_dropout=0.1, return_sequences=True))
-model_glove.add(LSTM(200,dropout=0.2, recurrent_dropout=0.1, return_sequences=True))
-model_glove.add(Flatten())
-model_glove.add(Dense(1, activation='sigmoid'))
-model_glove.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-model_glove.summary()
+#Normal conv lstm
+def create_conv_model():
+    model_conv = Sequential()
+    model_conv.add(Embedding(200000, 150, input_length=50))
+    #model_conv.add(Dropout(0.2))
+    #model_conv.add(Conv1D(64, 5, activation='relu'))
+    #model_conv.add(MaxPooling1D(pool_size=4))
+    model_conv.add(LSTM(150,dropout=0.3, recurrent_dropout=0.2, return_sequences=True))
+    model_conv.add(LSTM(150,dropout=0.3, recurrent_dropout=0.2, return_sequences=True))
+    model_conv.add(Flatten())
+    model_conv.add(Dense(1, activation='sigmoid'))
+    model_conv.compile(loss='binary_crossentropy', optimizer='adam',    metrics=['accuracy'])
+    return model_conv
+model_conv = create_conv_model()
+#model_conv.fit(data, y, validation_split=0.2, epochs = 2)
 
-train_x, valid_x, train_y, valid_y = model_selection.train_test_split(train_df['text'], y, test_size = .2)
+train_x, valid_x, train_y, valid_y = model_selection.train_test_split(train_df['text'], y, test_size = .1)
 # Create CountVectorizer
 sequences = tokenizer.texts_to_sequences(train_x)
 data = pad_sequences(sequences, maxlen=50)
-model_glove.fit(data, train_y, validation_split=0.1, epochs = 3)
+model_conv.fit(data, train_y, validation_split=0.1,epochs = 3)
+#Validate
 sequences = tokenizer.texts_to_sequences(valid_x)
 data = pad_sequences(sequences, maxlen=50)
-pred = model_glove.predict_classes(data)
+pred = model_conv.predict_classes(data)
 confusion_matrix = metrics.classification_report(valid_y,pred)
 
 print(confusion_matrix)
 
-
-#Normal conv_model
 

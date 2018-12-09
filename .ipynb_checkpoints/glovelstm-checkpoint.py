@@ -113,14 +113,14 @@ tokenizer.fit_on_texts(train_df['text'])
 sequences = tokenizer.texts_to_sequences(train_df['text'])
 data = pad_sequences(sequences, maxlen=50)
 embeddings_index = dict()
-f = open('/home/cheriexu/glove.twitter.27B.100d.txt')
+f = open('/home/cheriexu/glove.twitter.27B.200d.txt')
 for line in f:
     values = line.split()
     word = values[0]
     coefs = np.asarray(values[1:], dtype='float32')
     embeddings_index[word] = coefs
 f.close()
-embedding_matrix = np.zeros((vocabulary_size, 100))
+embedding_matrix = np.zeros((vocabulary_size, 200))
 for word, index in tokenizer.word_index.items():
     if index > vocabulary_size - 1:
         break
@@ -129,12 +129,12 @@ for word, index in tokenizer.word_index.items():
         if embedding_vector is not None:
             embedding_matrix[index] = embedding_vector
 model_glove = Sequential()
-model_glove.add(Embedding(vocabulary_size, 100, input_length=50, weights=[embedding_matrix], trainable=False))
+model_glove.add(Embedding(vocabulary_size, 200, input_length=50, weights=[embedding_matrix], trainable=False))
 #model_glove.add(Dropout(0.2))
-model_glove.add(Conv1D(64, 5, activation='relu'))
-model_glove.add(MaxPooling1D(pool_size=4))
-model_glove.add(LSTM(100,dropout=0.2, recurrent_dropout=0.1, return_sequences=True))
-model_glove.add(LSTM(100,dropout=0.2, recurrent_dropout=0.1, return_sequences=True))
+#model_glove.add(Conv1D(64, 5, activation='relu'))
+#model_glove.add(MaxPooling1D(pool_size=4))
+model_glove.add(LSTM(200,dropout=0.2, recurrent_dropout=0.1, return_sequences=True))
+model_glove.add(LSTM(200,dropout=0.2, recurrent_dropout=0.1, return_sequences=True))
 model_glove.add(Flatten())
 model_glove.add(Dense(1, activation='sigmoid'))
 model_glove.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
